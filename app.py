@@ -1,4 +1,3 @@
-
 import os
 import logging
 from flask import Flask, request
@@ -8,7 +7,6 @@ from google.cloud import dialogflow_v2 as dialogflow
 import uuid
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account_key.json"
-
 
 app = Flask(__name__)
 
@@ -66,5 +64,5 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     return response.query_result.fulfillment_text
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
-
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
