@@ -23,6 +23,10 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 DIALOGFLOW_PROJECT_ID = 'kumaransarees-mwfy'
 DIALOGFLOW_LANGUAGE_CODE = 'en'
 
+@app.route('/')
+def index():
+    return "Hello, this is the WhatsApp bot server!"
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     incoming_msg = request.values.get('Body', '').strip()
