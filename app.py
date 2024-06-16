@@ -40,11 +40,12 @@ def webhook():
     # Send the message to Dialogflow
     response_text, response_image = detect_intent_texts(DIALOGFLOW_PROJECT_ID, session_id, incoming_msg, DIALOGFLOW_LANGUAGE_CODE)
 
-    logging.debug(f"Dialogflow response: {response_text}, Image URL: {response_image}")
+    logging.debug(f"Dialogflow response text: {response_text}, response image: {response_image}")
 
     # Create a Twilio response
     resp = MessagingResponse()
     msg = resp.message(response_text)
+    
     if response_image:
         msg.media(response_image)
 
@@ -68,8 +69,9 @@ def detect_intent_texts(project_id, session_id, text, language_code):
 
     response_text = response.query_result.fulfillment_text
     response_image = None
+    
     for message in response.query_result.fulfillment_messages:
-        if message.message == "image":
+        if message.HasField('image'):
             response_image = message.image.image_uri
 
     return response_text, response_image
