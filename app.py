@@ -38,14 +38,15 @@ def webhook():
     session_id = generate_session_id(from_number)
 
     # Send the message to Dialogflow
-    response_text = detect_intent_texts(DIALOGFLOW_PROJECT_ID, session_id, incoming_msg, DIALOGFLOW_LANGUAGE_CODE)
+    response_text, response_image = detect_intent_texts(DIALOGFLOW_PROJECT_ID, session_id, incoming_msg, DIALOGFLOW_LANGUAGE_CODE)
 
-    logging.debug(f"Dialogflow response: {response_text}")
+    logging.debug(f"Dialogflow response: {response_text}, Image URL: {response_image}")
 
     # Create a Twilio response
     resp = MessagingResponse()
     msg = resp.message(response_text)
-    msg.sid = from_number
+    if response_image:
+        msg.media(response_image)
 
     return str(resp)
 
@@ -65,7 +66,13 @@ def detect_intent_texts(project_id, session_id, text, language_code):
 
     response = session_client.detect_intent(request={"session": session, "query_input": query_input})
 
-    return response.query_result.fulfillment_text
+    response_text = response.query_result.fulfillment_text
+    response_image = None
+    for message in response.query_result.fulfillment_messages:
+        if message.message == "image":
+            response_image = message.image.image_uri
+
+    return response_text, response_image
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
