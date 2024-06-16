@@ -2,7 +2,6 @@ import os
 import logging
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
 from google.cloud import dialogflow_v2 as dialogflow
 import uuid
 
@@ -12,12 +11,6 @@ app = Flask(__name__)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
-
-# Twilio credentials
-TWILIO_ACCOUNT_SID = 'AC9baf4c341360323c5351cf417c5ef3da'
-TWILIO_AUTH_TOKEN = '1374520473ed2d27d17c7f96ec145abe'
-
-client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Dialogflow credentials
 DIALOGFLOW_PROJECT_ID = 'kumaransarees-mwfy'
@@ -71,7 +64,7 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     response_image = None
     
     for message in response.query_result.fulfillment_messages:
-        if message.image.image_uri:
+        if hasattr(message, 'image') and message.image.image_uri:
             response_image = message.image.image_uri
 
     return response_text, response_image
