@@ -31,20 +31,32 @@ def webhook():
     session_id = generate_session_id(from_number)
 
     # Send the message to Dialogflow
-    response_text, response_image = detect_intent_texts(DIALOGFLOW_PROJECT_ID, session_id, incoming_msg, DIALOGFLOW_LANGUAGE_CODE)
+    response_text, response_image, response_buttons = detect_intent_texts(DIALOGFLOW_PROJECT_ID, session_id, incoming_msg, DIALOGFLOW_LANGUAGE_CODE)
 
     logging.debug(f"Dialogflow response text: {response_text}, response image: {response_image}")
 
     # Create a Twilio response
     resp = MessagingResponse()
     msg = resp.message(response_text)
-    
+
+    if response_buttons:
+        # Add buttons to the message
+        buttons = []
+        for button in response_buttons:
+            buttons.append({
+                "type": "reply",
+                "title": button['text'],
+                "payload": button['postback']
+            })
+        msg.buttons(buttons)
+
     if response_image:
         # Send the image stored in the project directory
         image_url = request.url_root + 'static/images/' + response_image
         msg.media(image_url)
 
     return str(resp)
+
 
 @app.route('/static/images/<filename>')
 def send_image(filename):
@@ -68,7 +80,16 @@ def detect_intent_texts(project_id, session_id, text, language_code):
 
     response_text = response.query_result.fulfillment_text
     response_image = None
-    
+    response_buttons = None
+
+    # Check if there are payload buttons
+    if response.query_result.webhook_payload and 'richContent' in response.query_result.webhook_payload:
+        rich_content = response.query_result.webhook_payload['richContent']
+        for content in rich_content:
+            if 'buttons' in content:
+                response_buttons = content['buttons']
+                break
+
     # Extract the image filename from the fulfillment text
     lines = response_text.split('\n')
     for line in lines:
@@ -76,7 +97,7 @@ def detect_intent_texts(project_id, session_id, text, language_code):
             response_image = line.strip()
             break
 
-    return response_text, response_image
+    return response_text, response_image, response_buttons
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
