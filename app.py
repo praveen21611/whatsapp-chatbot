@@ -47,7 +47,7 @@ def webhook():
 
     return str(resp)
 
-@app.route('/static/images/<filename>')
+@app.route('/static/images/kuppadam1.jpeg')
 def send_image(filename):
     return send_from_directory('static/images', filename)
 
