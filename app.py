@@ -47,7 +47,15 @@ def webhook():
 
     # Add buttons if available in the response
     if response_buttons:
-        actions = [{"type": "reply", "title": button['text'], "payload": button['postback']} for button in response_buttons]
+        buttons = []
+        for button in response_buttons:
+            buttons.append({
+                "type": "reply",
+                "reply": {
+                    "id": button['postback'],
+                    "title": button['text']
+                }
+            })
         interactive_message = {
             "type": "interactive",
             "interactive": {
@@ -56,7 +64,7 @@ def webhook():
                     "text": response_text
                 },
                 "action": {
-                    "buttons": actions
+                    "buttons": buttons
                 }
             }
         }
