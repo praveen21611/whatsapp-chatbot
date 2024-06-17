@@ -47,8 +47,7 @@ def webhook():
 
     # Add buttons if available in the response
     if response_buttons:
-        # Create an interactive message
-        actions = [{"type": "postback", "title": button['text'], "payload": button['postback']} for button in response_buttons]
+        actions = [{"type": "reply", "title": button['text'], "payload": button['postback']} for button in response_buttons]
         interactive_message = {
             "type": "interactive",
             "interactive": {
@@ -99,14 +98,14 @@ def detect_intent_texts(project_id, session_id, text, language_code):
 
     # Check if there are payload buttons in the response
     for message in response.query_result.fulfillment_messages:
-        if message.payload:
+        if message.HasField('payload'):
             payload = message.payload
-            if 'richContent' in payload:
-                rich_content = payload['richContent']
+            if 'richContent' in payload.fields:
+                rich_content = payload.fields['richContent']
                 for item in rich_content.list_value.values:
                     for button in item.list_value.values:
                         button_obj = button.struct_value
-                        if button_obj.fields['type'].string_value == 'button':
+                        if 'type' in button_obj.fields and button_obj.fields['type'].string_value == 'button':
                             response_buttons.append({
                                 'text': button_obj.fields['text'].string_value,
                                 'postback': button_obj.fields['postback'].string_value
