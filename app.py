@@ -71,8 +71,8 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     response_image = None
     
     for message in response.query_result.fulfillment_messages:
-        if message.payload and 'image' in message.payload:
-            response_image = message.payload['image']
+        if 'image' in message.payload.fields:
+            response_image = message.payload.fields['image'].string_value
             break
 
     return response_text, response_image
