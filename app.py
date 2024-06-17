@@ -48,7 +48,7 @@ def webhook():
 
 @app.route('/static/images/kuppadam.jpeg')
 def send_image(filename):
-    return send_from_directory('static/images', kuppadam.jpeg)
+    return send_from_directory('static/images', filename)
 
 def generate_session_id(user_identifier):
     """Generate a session ID based on user identifier (e.g., phone number)"""
@@ -72,7 +72,7 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     # Extract the image filename from the fulfillment text
     lines = response_text.split('\n')
     for line in lines:
-        if line.lower().endswith(('.jpeg', '.jpg', '.png')):
+        if line.lower().strip().endswith(('.jpeg', '.jpg', '.png')):
             response_image = line.strip()
             break
 
