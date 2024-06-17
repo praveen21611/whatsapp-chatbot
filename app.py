@@ -24,25 +24,25 @@ def index():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    # Retrieve incoming message and sender's phone number from Twilio
     incoming_msg = request.values.get('Body', '').strip()
     from_number = request.values.get('From', '').strip()
 
     logging.debug(f"Incoming message: {incoming_msg} from {from_number}")
 
-    # Generate a session ID based on the sender's phone number to maintain context
+    # Generate a session ID based on the from_number to maintain context
     session_id = generate_session_id(from_number)
 
-    # Send the message to Dialogflow and receive response
+    # Send the message to Dialogflow
     response_text, response_image, response_buttons = detect_intent_texts(DIALOGFLOW_PROJECT_ID, session_id, incoming_msg, DIALOGFLOW_LANGUAGE_CODE)
 
-    logging.debug(f"Dialogflow response text: {response_text}, response image: {response_image}")
+    logging.debug(f"Dialogflow response text: {response_text}, response image: {response_image}, response buttons: {response_buttons}")
 
-    # Create a Twilio MessagingResponse object
+    # Create a Twilio response
     resp = MessagingResponse()
+    msg = resp.message()
 
-    # Add text response from Dialogflow to the Twilio message
-    msg = resp.message(response_text)
+    # Add text response from Dialogflow
+    msg.body(response_text)
 
     # Add buttons if available in the response
     if response_buttons:
@@ -57,12 +57,11 @@ def webhook():
 
     # Add image if available in the response
     if response_image:
-        # Construct the URL for the image in the project directory
         image_url = request.url_root + 'static/images/' + response_image
         msg.media(image_url)
 
-    # Return the Twilio MessagingResponse object as a string
     return str(resp)
+
 
 @app.route('/static/images/<filename>')
 def send_image(filename):
