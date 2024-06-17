@@ -48,8 +48,28 @@ def webhook():
 
     # Add buttons if available in the response
     if response_buttons:
+        buttons = []
         for button in response_buttons:
-            msg.body(f"{button['text']} - {button['postback']}")
+            buttons.append({
+                "type": "reply",
+                "reply": {
+                    "id": button['postback'],
+                    "title": button['text']
+                }
+            })
+        interactive_message = {
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {
+                    "text": response_text
+                },
+                "action": {
+                    "buttons": buttons
+                }
+            }
+        }
+        msg.body(json.dumps(interactive_message))
 
     # Add image if available in the response
     if response_image:
@@ -92,13 +112,20 @@ def detect_intent_texts(project_id, session_id, text, language_code):
             if 'richContent' in payload:
                 rich_content = payload['richContent'].list_value.values
                 for item in rich_content:
-                    if item.list_value.values:
+                    if 'list_value' in item and item.list_value.values:
                         for button in item.list_value.values:
-                            if 'struct_value' in button.struct_value.fields and 'type' in button.struct_value.fields and button.struct_value.fields['type'].string_value == 'button':
+                            if 'struct_value' in button and 'fields' in button.struct_value and 'type' in button.struct_value.fields and button.struct_value.fields['type'].string_value == 'button':
                                 response_buttons.append({
                                     'text': button.struct_value.fields['text'].string_value,
                                     'postback': button.struct_value.fields['postback'].string_value
                                 })
+
+    # Extract image filename from the fulfillment text
+    lines = response_text.split('\n')
+    for line in lines:
+        if line.lower().strip().endswith(('.jpeg', '.jpg', '.png')):
+            response_image = line.strip()
+            break
 
     # Return response text, image filename, and buttons
     return response_text, response_image, response_buttons
