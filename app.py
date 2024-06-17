@@ -43,7 +43,8 @@ def webhook():
     msg = resp.message()
 
     # Add text response from Dialogflow
-    msg.body(response_text)
+    if response_text:
+        msg.body(response_text)
 
     # Add buttons if available in the response
     if response_buttons:
@@ -109,15 +110,15 @@ def detect_intent_texts(project_id, session_id, text, language_code):
         if 'payload' in message and 'fields' in message.payload:
             payload = message.payload['fields']
             if 'richContent' in payload:
-                rich_content = payload['richContent']
-                for item in rich_content.list_value.values:
-                    for button in item.list_value.values:
-                        button_obj = button.struct_value
-                        if 'type' in button_obj.fields and button_obj.fields['type'].string_value == 'button':
-                            response_buttons.append({
-                                'text': button_obj.fields['text'].string_value,
-                                'postback': button_obj.fields['postback'].string_value
-                            })
+                rich_content = payload['richContent'].list_value.values
+                for item in rich_content:
+                    if 'list_value' in item and item.list_value.values:
+                        for button in item.list_value.values:
+                            if 'struct_value' in button and 'fields' in button.struct_value and 'type' in button.struct_value.fields and button.struct_value.fields['type'].string_value == 'button':
+                                response_buttons.append({
+                                    'text': button.struct_value.fields['text'].string_value,
+                                    'postback': button.struct_value.fields['postback'].string_value
+                                })
 
     # Extract image filename from the fulfillment text
     lines = response_text.split('\n')
