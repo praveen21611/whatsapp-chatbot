@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 from google.cloud import dialogflow_v2 as dialogflow
@@ -47,9 +47,15 @@ def webhook():
     msg = resp.message(response_text)
     
     if response_image:
-        msg.media(response_image)
+        # Send the image stored in the project directory
+        image_url = request.url_root + 'static/images/' + response_image
+        msg.media(image_url)
 
     return str(resp)
+
+@app.route('/static/images/kuppadam.jpeg')
+def send_image(filename):
+    return send_from_directory('static/images', kuppadam.jpeg)
 
 def generate_session_id(user_identifier):
     """Generate a session ID based on user identifier (e.g., phone number)"""
@@ -71,8 +77,8 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     response_image = None
     
     for message in response.query_result.fulfillment_messages:
-        if 'image' in message.payload.fields:
-            response_image = message.payload.fields['image'].string_value
+        if message.payload and 'image' in message.payload:
+            response_image = message.payload['image']
             break
 
     return response_text, response_image
