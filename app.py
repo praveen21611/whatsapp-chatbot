@@ -78,21 +78,22 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     # Extract fulfillment text, image filename, and buttons from Dialogflow response
     response_text = response.query_result.fulfillment_text
     response_image = None
-    response_buttons = None
+    response_buttons = []
 
     # Check if there are payload buttons in the response
     if response.query_result.fulfillment_messages:
         for message in response.query_result.fulfillment_messages:
-            if 'payload' in message and 'richContent' in message['payload']:
-                rich_content = message['payload']['richContent']
-                for content in rich_content:
-                    if isinstance(content, list):
-                        response_buttons = []
-                        for item in content:
-                            if item['type'] == 'button':
+            if message.HasField('payload'):
+                payload = message.payload.fields
+                if 'richContent' in payload:
+                    rich_content = payload['richContent'].list_value
+                    for item in rich_content.values:
+                        for button in item.list_value.values:
+                            button_obj = button.struct_value
+                            if button_obj.fields['type'].string_value == 'button':
                                 response_buttons.append({
-                                    'text': item['text'],
-                                    'postback': item['postback']
+                                    'text': button_obj.fields['text'].string_value,
+                                    'postback': button_obj.fields['postback'].string_value
                                 })
 
     # Extract image filename from the fulfillment text
