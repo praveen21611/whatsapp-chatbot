@@ -4,6 +4,7 @@ from flask import Flask, request, send_from_directory
 from twilio.twiml.messaging_response import MessagingResponse
 from google.cloud import dialogflow_v2 as dialogflow
 import uuid
+import json
 
 # Set Google Cloud credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account_key.json"
@@ -44,10 +45,23 @@ def webhook():
     # Add text response from Dialogflow
     msg.body(response_text)
 
-    # Add quick reply buttons if available in the response
+    # Add buttons if available in the response
     if response_buttons:
-        for button in response_buttons:
-            msg.body(f"\n{button['text']}: {button['postback']}")
+        # Create an interactive message
+        actions = [{"type": "postback", "title": button['text'], "payload": button['postback']} for button in response_buttons]
+        interactive_message = {
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {
+                    "text": response_text
+                },
+                "action": {
+                    "buttons": actions
+                }
+            }
+        }
+        msg.body(json.dumps(interactive_message))
 
     # Add image if available in the response
     if response_image:
