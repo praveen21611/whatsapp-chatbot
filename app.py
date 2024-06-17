@@ -2,7 +2,6 @@ import os
 import logging
 from flask import Flask, request, send_from_directory
 from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
 from google.cloud import dialogflow_v2 as dialogflow
 import uuid
 
@@ -12,12 +11,6 @@ app = Flask(__name__)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
-
-# Twilio credentials
-TWILIO_ACCOUNT_SID = 'AC9baf4c341360323c5351cf417c5ef3da'
-TWILIO_AUTH_TOKEN = '1374520473ed2d27d17c7f96ec145abe'
-
-client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Dialogflow credentials
 DIALOGFLOW_PROJECT_ID = 'kumaransarees-mwfy'
@@ -53,9 +46,9 @@ def webhook():
 
     return str(resp)
 
-@app.route('/static/images/<filename>')
+@app.route('/static/images/kuppadam.jpeg')
 def send_image(filename):
-    return send_from_directory('static/images', filename)
+    return send_from_directory('static/images', kuppadam.jpeg)
 
 def generate_session_id(user_identifier):
     """Generate a session ID based on user identifier (e.g., phone number)"""
@@ -76,9 +69,11 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     response_text = response.query_result.fulfillment_text
     response_image = None
     
-    for message in response.query_result.fulfillment_messages:
-        if message.payload and 'image' in message.payload.fields:
-            response_image = message.payload.fields['image'].string_value
+    # Extract the image filename from the fulfillment text
+    lines = response_text.split('\n')
+    for line in lines:
+        if line.lower().endswith(('.jpeg', '.jpg', '.png')):
+            response_image = line.strip()
             break
 
     return response_text, response_image
