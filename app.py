@@ -41,12 +41,13 @@ def webhook():
     
     if response_image:
         # Send the image stored in the project directory
-        image_url = request.url_root + 'static/images/' + response_image
+        image_path = os.path.join('static/images', response_image)
+        image_url = request.url_root + image_path
         msg.media(image_url)
 
     return str(resp)
 
-@app.route('/static/images/kuppadam.jpeg')
+@app.route('/static/images/<filename>')
 def send_image(filename):
     return send_from_directory('static/images', filename)
 
