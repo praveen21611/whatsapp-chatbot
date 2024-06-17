@@ -39,7 +39,10 @@ def webhook():
 
     # Create a Twilio response
     resp = MessagingResponse()
-    msg = resp.message(response_text)
+    msg = resp.message()
+
+    # Add text response from Dialogflow
+    msg.body(response_text)
 
     # Add quick reply buttons if available in the response
     if response_buttons:
@@ -81,20 +84,19 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     response_buttons = []
 
     # Check if there are payload buttons in the response
-    if response.query_result.fulfillment_messages:
-        for message in response.query_result.fulfillment_messages:
-            if message.HasField('payload'):
-                payload = message.payload.fields
-                if 'richContent' in payload:
-                    rich_content = payload['richContent'].list_value
-                    for item in rich_content.values:
-                        for button in item.list_value.values:
-                            button_obj = button.struct_value
-                            if button_obj.fields['type'].string_value == 'button':
-                                response_buttons.append({
-                                    'text': button_obj.fields['text'].string_value,
-                                    'postback': button_obj.fields['postback'].string_value
-                                })
+    for message in response.query_result.fulfillment_messages:
+        if message.payload:
+            payload = message.payload
+            if 'richContent' in payload:
+                rich_content = payload['richContent']
+                for item in rich_content.list_value.values:
+                    for button in item.list_value.values:
+                        button_obj = button.struct_value
+                        if button_obj.fields['type'].string_value == 'button':
+                            response_buttons.append({
+                                'text': button_obj.fields['text'].string_value,
+                                'postback': button_obj.fields['postback'].string_value
+                            })
 
     # Extract image filename from the fulfillment text
     lines = response_text.split('\n')
