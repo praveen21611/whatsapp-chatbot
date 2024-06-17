@@ -70,13 +70,10 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     response_text = response.query_result.fulfillment_text
     response_image = None
     
-    # Check for image URL in fulfillmentMessages
     for message in response.query_result.fulfillment_messages:
-        if 'text' in message and 'text' in message.text:
-            for text_part in message.text.text:
-                if text_part.startswith("http") and (".jpg" in text_part or ".jpeg" in text_part or ".png" in text_part):
-                    response_image = text_part
-                    break
+        if message.payload and 'image' in message.payload:
+            response_image = message.payload['image']
+            break
 
     return response_text, response_image
 
