@@ -99,9 +99,9 @@ def detect_intent_texts(project_id, session_id, text, language_code):
     # Check if there are payload buttons in the response
     for message in response.query_result.fulfillment_messages:
         if 'payload' in message and 'fields' in message.payload:
-            fields = message.payload['fields']
-            if 'richContent' in fields:
-                rich_content = fields['richContent']
+            payload = message.payload['fields']
+            if 'richContent' in payload:
+                rich_content = payload['richContent']
                 for item in rich_content.list_value.values:
                     for button in item.list_value.values:
                         button_obj = button.struct_value
